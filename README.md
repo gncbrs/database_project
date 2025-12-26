@@ -1,4 +1,10 @@
-database bağlanmak için : src klasorü altındaki db.properties belgesine kendi mysql şifrenizi girin
+CAR MARKET SYSTEM
+this project designed for car sales company
+you can add customer,saler,car,images and make sales
+
+
+
+database bağlanmak için : mysqli kurduktan sonra src klasorü altındaki db.properties belgesine kendi mysql şifrenizi girin
 
 
 db connection hatası çözümü:

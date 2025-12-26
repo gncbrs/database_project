@@ -53,7 +53,10 @@ public class MainMenu extends JFrame {
         menuPanel.add(createMenuButton("Add Customer", e -> new AddCustomerUI().setVisible(true)));
         menuPanel.add(createMenuButton("Add Seller", e -> new AddSellerUI().setVisible(true)));
         menuPanel.add(createMenuButton("Add Car", e -> new AddCarUI().setVisible(true)));
-
+        
+        //2. araba ekleme sihirbazı
+        //menuPanel.add(createMenuButton("Add Car", e -> new AddCarWizard().setVisible(true)));
+        
         // Exit button with different color
         ModernButton btnExit = new ModernButton("Exit", Theme.ERROR_COLOR, new Color(200, 40, 50));
         btnExit.addActionListener(e -> System.exit(0));
@@ -65,7 +68,7 @@ public class MainMenu extends JFrame {
         JPanel footerPanel = new JPanel();
         footerPanel.setBackground(Color.WHITE);
         footerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        JLabel lblFooter = new JLabel("Car Market System v2.0 - Developed by Antigravity");
+        JLabel lblFooter = new JLabel("Car Market System v2.0");
         lblFooter.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         lblFooter.setForeground(Color.GRAY);
         footerPanel.add(lblFooter);

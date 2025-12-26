@@ -15,6 +15,9 @@ public class AddCarUI extends JFrame {
     private JComboBox<String> cmbStatus;
     private JComboBox<String> cmbOption;
     private ModernButton btnChooseImage, btnAddCar;
+    // NEW ÖZELLİKLER
+    private JLabel lblImagePreview;
+    private java.util.ArrayList<String> selectedPaths = new java.util.ArrayList<>();
 
     public AddCarUI() {
         setTitle("Add New Car");
@@ -71,6 +74,20 @@ public class AddCarUI extends JFrame {
         // Image Row
         gbc.gridx = 0;
         gbc.gridy = 8;
+        // ... (Mevcut kodundaki Image Path satırları) ...
+
+// --- YENİ EKLENECEK KISIM: RESİM ÖNİZLEME ALANI ---
+gbc.gridx = 1;
+gbc.gridy = 9; // Bir alt satıra geç
+gbc.weighty = 1.0; // Dikeyde yer kaplasın
+gbc.fill = GridBagConstraints.BOTH;
+
+lblImagePreview = new JLabel();
+lblImagePreview.setHorizontalAlignment(JLabel.CENTER);
+lblImagePreview.setBorder(BorderFactory.createLineBorder(Color.GRAY)); // Çerçeve olsun ki yerini görelim
+lblImagePreview.setPreferredSize(new Dimension(200, 150)); // Varsayılan boyut
+
+formPanel.add(lblImagePreview, gbc);
         JLabel lblImg = new JLabel("Image Path:");
         lblImg.setFont(Theme.STANDARD_FONT);
         formPanel.add(lblImg, gbc);
@@ -130,11 +147,33 @@ public class AddCarUI extends JFrame {
     // FOTOĞRAF SEÇME
     // =========================
     private void chooseImage() {
-        JFileChooser chooser = new JFileChooser();
-        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            txtImagePath.setText(chooser.getSelectedFile().getAbsolutePath());
+    JFileChooser chooser = new JFileChooser();
+    chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Images", "jpg", "png", "jpeg", "webp"));
+    
+    // --- ÇOKLU SEÇİMİ AKTİF ET ---
+    chooser.setMultiSelectionEnabled(true); 
+
+    if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+        // Seçilen dosyaları al
+        java.io.File[] files = chooser.getSelectedFiles();
+        
+        selectedPaths.clear(); // Önceki seçimleri temizle (İstersen silmeyebilirsin)
+        
+        for (java.io.File file : files) {
+            selectedPaths.add(file.getAbsolutePath());
+        }
+
+        // Kullanıcıya kaç dosya seçtiğini göster
+        if (selectedPaths.size() > 0) {
+            txtImagePath.setText(selectedPaths.size() + " images selected");
+            
+            // İlk resmin önizlemesini gösterelim
+            ImageIcon originalIcon = new ImageIcon(selectedPaths.get(0));
+            Image img = originalIcon.getImage().getScaledInstance(200, 150, Image.SCALE_SMOOTH);
+            lblImagePreview.setIcon(new ImageIcon(img));
         }
     }
+}
 
     // =========================
     // VERİTABANINA EKLEME

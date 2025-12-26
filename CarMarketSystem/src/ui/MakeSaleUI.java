@@ -144,15 +144,22 @@ public class MakeSaleUI extends JFrame {
     // ======================================
     // CAR DROPDOWN DOLDUR
     // ======================================
+    // ======================================
+    // CAR DROPDOWN DOLDUR (GÜNCELLENDİ)
+    // ======================================
     private void loadCars() {
         try {
-            java.util.List<models.Car> cars = dao.CarDAO.getAllCars();
+            // ESKİSİ: java.util.List<models.Car> cars = dao.CarDAO.getAllCars();
+            // YENİSİ: Sadece müsait araçları çekiyoruz
+            java.util.List<models.Car> cars = dao.CarDAO.getAvailableCars();
 
             cmbCar.removeAllItems();
             carIds.clear();
 
             for (models.Car c : cars) {
-                String label = c.getBrand() + " " + c.getModel();
+                // Kullanıcıya Marka + Model + Yıl göstermek daha ayırt edici olur
+                String label = c.getBrand() + " " + c.getModel() + " (" + c.getYear() + ")";
+                
                 carIds.add(c.getCarId());
                 cmbCar.addItem(label);
             }
@@ -167,45 +174,57 @@ public class MakeSaleUI extends JFrame {
     // ======================================
     private void makeSale() {
 
-        if (cmbCustomer.getSelectedIndex() == -1 ||
-                cmbSeller.getSelectedIndex() == -1 ||
-                cmbCar.getSelectedIndex() == -1) {
-            JOptionPane.showMessageDialog(this, "Please select all fields!");
-            return;
-        }
-
-        if (txtSalePrice.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter sale price!");
-            return;
-        }
-
-        try {
-            int customerId = customerIds.get(cmbCustomer.getSelectedIndex());
-            int sellerId = sellerIds.get(cmbSeller.getSelectedIndex());
-            int carId = carIds.get(cmbCar.getSelectedIndex());
-            double price = Double.parseDouble(txtSalePrice.getText());
-
-            // First delete the car BEFORE creating the sale record
-            // (otherwise the foreign key constraint will prevent deletion)
-            boolean carDeleted = dao.CarDAO.deleteCar(carId);
-
-            if (!carDeleted) {
-                JOptionPane.showMessageDialog(this, "Failed to remove car from inventory!");
-                return;
-            }
-
-            // Now add the sale record (without the car_id foreign key constraint issue)
-            boolean saleAdded = SaleDAO.addSaleWithoutCarFK(customerId, sellerId, carId, price);
-
-            if (saleAdded) {
-                JOptionPane.showMessageDialog(this, "Sale completed successfully! Car removed from list.");
-                dispose();
-            } else {
-                JOptionPane.showMessageDialog(this, "Sale FAILED! Car was removed but sale record failed.");
-            }
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
-        }
+    // 1. Validasyonlar (Aynen kalıyor)
+    if (cmbCustomer.getSelectedIndex() == -1 ||
+        cmbSeller.getSelectedIndex() == -1 ||
+        cmbCar.getSelectedIndex() == -1) {
+        JOptionPane.showMessageDialog(this, "Please select all fields!");
+        return;
     }
+
+    if (txtSalePrice.getText().trim().isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Please enter sale price!");
+        return;
+    }
+
+    try {
+        int customerId = customerIds.get(cmbCustomer.getSelectedIndex());
+        int sellerId = sellerIds.get(cmbSeller.getSelectedIndex());
+        int carId = carIds.get(cmbCar.getSelectedIndex());
+        
+        // Fiyatı parse et
+        String priceText = txtSalePrice.getText().replace(",", "."); // Olası format hatası önlemi
+        double price = Double.parseDouble(priceText);
+
+        // --- DEĞİŞİKLİK BURADA BAŞLIYOR ---
+
+        // ADIM 1: Satış Kaydını Oluştur (Artık arabayı silmediğimiz için FK hatası almazsın)
+        // Not: addSale metodunuzun normal bir insert işlemi olması yeterli.
+        boolean saleAdded = SaleDAO.addSale(customerId, sellerId, carId, price);
+
+        if (saleAdded) {
+            
+            // ADIM 2: Arabanın Durmunu "Sold" Olarak Güncelle
+            // Bunun için CarDAO veya StatusDAO içinde yeni bir metoda ihtiyacın var.
+            boolean statusUpdated = dao.CarDAO.updateCarStatusToSold(carId);
+            
+            if (statusUpdated) {
+                JOptionPane.showMessageDialog(this, "Sale completed successfully! Car status updated to Sold.");
+                dispose(); // Pencereyi kapat
+            } else {
+                JOptionPane.showMessageDialog(this, "Sale recorded, but failed to update car status!");
+            }
+            
+        } else {
+            JOptionPane.showMessageDialog(this, "Sale FAILED! Could not create sale record.");
+        }
+
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Invalid price format!");
+    } catch (Exception ex) {
+        ex.printStackTrace(); // Konsolda hatayı görmek için
+        JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+    }
+}
+
 }

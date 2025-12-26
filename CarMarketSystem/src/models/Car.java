@@ -42,4 +42,17 @@ public class Car {
 
     public int getTorque() { return torque; }
     public void setTorque(int torque) { this.torque = torque; }
+    // YENİ ALAN
+    private String status; 
+
+    // Constructor'ı güncellemen gerekebilir veya
+    // Sadece Getter/Setter ekleyebilirsin:
+    
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }
